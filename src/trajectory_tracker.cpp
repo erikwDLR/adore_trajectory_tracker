@@ -120,6 +120,13 @@ TrajectoryTracker::create_subscribers()
   subscriber_vehicle_state = create_subscription<StateAdapter>( "vehicle_state_dynamic", 1,
                                                                 std::bind( &TrajectoryTracker::vehicle_state_callback, this,
                                                                            std::placeholders::_1 ) );
+
+  subscriber_indicator_command = create_subscription<adore_ros2_msgs::msg::IndicatorState>(
+      "indicator_command", 1,
+      [this]( const adore_ros2_msgs::msg::IndicatorState& msg )
+      {
+        latest_indicator_command = msg;
+      } );
 }
 
 void
@@ -145,6 +152,22 @@ TrajectoryTracker::timer_callback()
     if( label == "waiting for mission" )
     {
       controls.acceleration = standstill_accel;
+    }
+    else if( label.find( "waiting" ) != std::string::npos )
+    {
+      // Waiting-to-stop states need responsive braking.
+      // PurePursuit's acc_smoothing (0.95) delays braking by ~2 s,
+      // so apply the trajectory's acceleration directly while
+      // keeping the controller for steering (route following).
+      auto next_controls = controllers::get_next_vehicle_command( controller, *latest_trajectory, *latest_vehicle_state );
+      if( next_controls )
+        controls.steering_angle = next_controls->steering_angle;
+
+      auto ref_state        = latest_trajectory->get_state_at_time( latest_vehicle_state->time );
+      controls.acceleration = std::min( ref_state.ax, static_cast<double>( standstill_accel ) );
+
+      auto last_traj = controllers::get_last_trajectory( controller );
+      publisher_controller_trajectory->publish( last_traj );
     }
     else if( label != "emergency stop" && label != "remote operations (waiting for remote operator instructions)" )
     {
@@ -175,6 +198,15 @@ TrajectoryTracker::update_blinker_state()
     indicators_on( true, true );
     return;
   }
+
+  // Use indicator commands from the decision maker (obstacle avoidance turn signals)
+  if( latest_indicator_command.has_value() )
+  {
+    indicators_on( latest_indicator_command->left_indicator_on,
+                   latest_indicator_command->right_indicator_on );
+    return;
+  }
+
   indicators_on( false, false );
 }
 

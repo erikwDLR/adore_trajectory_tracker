@@ -56,9 +56,11 @@ private:
 
   rclcpp::Subscription<TrajectoryAdapter>::SharedPtr subscriber_trajectory;
   rclcpp::Subscription<StateAdapter>::SharedPtr      subscriber_vehicle_state;
+  rclcpp::Subscription<adore_ros2_msgs::msg::IndicatorState>::SharedPtr subscriber_indicator_command;
 
   std::optional<dynamics::VehicleStateDynamic> latest_vehicle_state = std::nullopt;
   std::optional<dynamics::Trajectory>          latest_trajectory    = std::nullopt;
+  std::optional<adore_ros2_msgs::msg::IndicatorState> latest_indicator_command = std::nullopt;
 
   dynamics::VehicleCommand last_controls;
 
