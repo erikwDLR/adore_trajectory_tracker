@@ -1,0 +1,3 @@
+[submodule "adore_trajectory_tracker"]
+	path = adore_trajectory_tracker
+	url = https://github.com/erikwDLR/adore_trajectory_tracker

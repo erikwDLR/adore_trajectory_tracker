@@ -170,9 +170,23 @@ TrajectoryTracker::update_blinker_state()
     return;
   }
   const auto& label = latest_trajectory->label;
-  if( label == "Emergency Stop" || label == "Requesting Assistance" )
+  if( label == "Emergency Stop" ||
+      label == "emergency stop" ||
+      label == "Requesting Assistance" )
   {
     indicators_on( true, true );
+    return;
+  }
+  if( label.find( "obstacle avoidance left" ) != std::string::npos ||
+      label.find( "OA locked left" ) != std::string::npos )
+  {
+    indicators_on( true, false );
+    return;
+  }
+  if( label.find( "obstacle avoidance right" ) != std::string::npos ||
+      label.find( "OA locked right" ) != std::string::npos )
+  {
+    indicators_on( false, true );
     return;
   }
   indicators_on( false, false );
