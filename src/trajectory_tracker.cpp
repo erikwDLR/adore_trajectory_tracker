@@ -178,13 +178,13 @@ TrajectoryTracker::update_blinker_state()
     return;
   }
   if( label.find( "obstacle avoidance left" ) != std::string::npos ||
-      label.find( "OA locked left" ) != std::string::npos )
+      label.find( "active obstacle avoidance left" ) != std::string::npos )
   {
     indicators_on( true, false );
     return;
   }
   if( label.find( "obstacle avoidance right" ) != std::string::npos ||
-      label.find( "OA locked right" ) != std::string::npos )
+      label.find( "active obstacle avoidance right" ) != std::string::npos )
   {
     indicators_on( false, true );
     return;
